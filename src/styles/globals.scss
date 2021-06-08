@@ -5,3 +5,42 @@
 }
 
 // TODO
+:root {
+  --white-10: #F8F8F8;
+  --white-100: #D7D7D7;
+  --white-300: #BBBBBB;
+
+  --blue-900: #1A1D23;
+
+  --purple-100: #FF57B2;
+}
+
+@media (max-width: 1080px) {
+  html {
+    font-size: 93.75%; // 1rem * 93.75% = 16px * 93.75% = 15;
+  }
+}
+
+@media (max-width: 720px) {
+  html {
+    font-size: 87.5%; // 1rem * 87.5% = 16px * 87.5% = 14;
+  }
+}
+
+body {
+  background: var(--blue-900);
+  color: var(--white-10);
+}
+
+body, input, textarea, select, button {
+  font: 400 1rem "Inter", sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
