@@ -2,8 +2,10 @@ import { GetStaticPaths, GetStaticProps } from 'next';
 import Head from 'next/head';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
-
 import { RichText } from 'prismic-dom';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+
 import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
@@ -31,6 +33,24 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps): JSX.Element {
+  const wordsQuantity = post.data.content.reduce((accumulator, c) => {
+    const headingWordsQuantity = c.heading.split(' ').length;
+
+    const bodyWordsQuantity = RichText.asText(c.body).split(' ').length;
+
+    return accumulator + (headingWordsQuantity + bodyWordsQuantity);
+  }, 0);
+
+  const wordsPerMinutes = Math.ceil(wordsQuantity / 200);
+
+  const formattedPublicationDate = format(
+    new Date(post.first_publication_date),
+    'dd MMM yyyy',
+    {
+      locale: ptBR,
+    }
+  );
+
   return (
     <>
       <Head>
@@ -48,13 +68,14 @@ export default function Post({ post }: PostProps): JSX.Element {
             <h1>{post.data.title}</h1>
             <address>
               <FiCalendar />
-              <time>15 Mar 2021</time>
+              <time>{formattedPublicationDate}</time>
               <span>
                 <FiUser />
                 {post.data.author}
               </span>
               <span>
-                <FiClock />4 min
+                <FiClock />
+                {wordsPerMinutes} min
               </span>
             </address>
           </header>
