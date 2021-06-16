@@ -40,7 +40,7 @@ export default function Home({
         <title>Home | spacetraveling</title>
       </Head>
 
-      <main className={styles.homeContainer}>
+      <main className={`${styles.homeContainer} ${commonStyles.container}`}>
         {results.map(post => (
           <section className={styles.homeContent}>
             <Link href={`/post/${post.uid}`}>

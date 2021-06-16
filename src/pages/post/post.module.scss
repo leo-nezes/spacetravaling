@@ -4,7 +4,6 @@
 }
 
 .postContainer {
-  max-width: 720px;
   margin: 5rem auto;
 
   article + article {
@@ -41,21 +40,5 @@
       align-items: center;
       margin-left: 1.5rem;
     }
-  }
-}
-
-.postContent {
-  h2 {
-    font-weight: 700;
-    font-size: 2.25rem; //36px
-    line-height: normal;
-    margin-bottom: 3rem;
-  }
-
-  p {
-    font-weight: 400;
-    font-size: 1.125rem;
-    line-height: 140%;
-    color: var(--white-100);
   }
 }

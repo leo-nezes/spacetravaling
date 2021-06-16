@@ -1,0 +1,19 @@
+.postContent {
+  h2 {
+    margin: 3rem 0;
+    font-weight: 700;
+    font-size: 2.25rem; //36px
+    line-height: normal;
+  }
+
+  p {
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 140%;
+    color: var(--white-100);
+
+    & + p {
+      margin-top: 1rem;
+    }
+  }
+}
