@@ -30,10 +30,25 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({
-  next_page,
-  results,
-}: PostPagination): JSX.Element {
+export default function Home({ postsPagination }: HomeProps): JSX.Element {
+  const posts = postsPagination.results.map(post => {
+    return {
+      ...post,
+      first_publication_date: format(
+        new Date(post.first_publication_date),
+        'dd MMM yyyy',
+        {
+          locale: ptBR,
+        }
+      ),
+    };
+  });
+
+  const handleClick = async (link: string): Promise<void> => {
+    const response = await fetch(link);
+    console.log(response);
+  };
+
   return (
     <>
       <Head>
@@ -41,7 +56,7 @@ export default function Home({
       </Head>
 
       <main className={`${styles.homeContainer} ${commonStyles.container}`}>
-        {results.map(post => (
+        {posts.map(post => (
           <section className={styles.homeContent}>
             <Link href={`/post/${post.uid}`}>
               <a>{post.data.title}</a>
@@ -57,8 +72,12 @@ export default function Home({
           </section>
         ))}
 
-        {next_page && (
-          <button className={styles.loadButton} type="button">
+        {postsPagination.next_page && (
+          <button
+            className={styles.loadButton}
+            onClick={() => handleClick(postsPagination.next_page)}
+            type="button"
+          >
             Carregar mais posts
           </button>
         )}
@@ -71,7 +90,8 @@ export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient();
 
   const postsResponse = await prismic.query(
-    Prismic.Predicates.at('document.type', 'posts')
+    Prismic.Predicates.at('document.type', 'posts'),
+    { pageSize: 5 }
   );
 
   const { next_page } = postsResponse;
@@ -79,13 +99,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const posts = postsResponse.results.map(post => {
     return {
       uid: post.uid,
-      first_publication_date: format(
-        new Date(post.first_publication_date),
-        'dd MMM yyyy - HH:mm',
-        {
-          locale: ptBR,
-        }
-      ),
+      first_publication_date: post.first_publication_date,
       data: {
         title: post.data.title,
         subtitle: post.data.subtitle,
@@ -94,10 +108,14 @@ export const getStaticProps: GetStaticProps = async () => {
     };
   });
 
+  const postsPagination: PostPagination = {
+    results: posts,
+    next_page,
+  };
+
   return {
     props: {
-      results: posts,
-      next_page,
+      postsPagination,
     },
   };
 };
