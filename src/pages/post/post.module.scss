@@ -42,3 +42,16 @@
     }
   }
 }
+
+
+.divider {
+  height: 0;
+  margin: 3.75rem 0 3rem 0;
+  border: 1px solid var(--white-100);
+  filter: opacity(0.1);
+}
+
+.changeButtons {
+  display: flex;
+  justify-content: space-between;
+}

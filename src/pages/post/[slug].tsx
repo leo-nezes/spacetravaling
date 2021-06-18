@@ -12,6 +12,8 @@ import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import Commentary from '../../components/Commentary';
+import PreviousNext from '../../components/PreviousNext';
 
 interface Post {
   first_publication_date: string | null;
@@ -97,6 +99,27 @@ export default function Post({ post }: PostProps): JSX.Element {
           </header>
 
           <PostContent content={postContent} />
+
+          <hr className={styles.divider} />
+
+          <div className={styles.changeButtons}>
+            <PreviousNext
+              data={{
+                title: 'Teste',
+                uid: 'test',
+                description: 'Post anterior',
+              }}
+            />
+            <PreviousNext
+              data={{
+                title: 'Teste',
+                uid: 'test',
+                description: 'Próximo post',
+              }}
+            />
+          </div>
+
+          <Commentary />
         </section>
       </main>
     </>

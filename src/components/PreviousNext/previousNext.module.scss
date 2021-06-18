@@ -1,0 +1,29 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.container:last-child {
+  text-align: right;
+}
+
+.title {
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1.125rem;
+  color: var(--white-10);
+}
+
+.description {
+  margin-top: 0.5rem;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 1rem;
+  color: var(--purple-100);
+
+  transition: filter 0.2s;
+
+  &:hover {
+    filter: opacity(0.5);
+  }
+}
