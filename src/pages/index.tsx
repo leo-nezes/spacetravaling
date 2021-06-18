@@ -6,6 +6,7 @@ import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
+import { useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -31,7 +32,8 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps): JSX.Element {
-  const posts = postsPagination.results.map(post => {
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
+  const formattedPosts = postsPagination.results.map(post => {
     return {
       ...post,
       first_publication_date: format(
@@ -43,10 +45,36 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
       ),
     };
   });
+  const [posts, setPosts] = useState<Post[]>(formattedPosts);
 
-  const handleClick = async (link: string): Promise<void> => {
-    const response = await fetch(link);
-    console.log(response);
+  const handleClick = async (): Promise<void> => {
+    const nextPageResults = await fetch(postsPagination.next_page).then(
+      response => response.json()
+    );
+
+    const newPosts = nextPageResults.results.map(post => {
+      const newPost = {
+        uid: post.uid,
+        first_publication_date: format(
+          new Date(post.first_publication_date),
+          'dd MMM yyyy',
+          {
+            locale: ptBR,
+          }
+        ),
+        data: {
+          title: post.data.title,
+          subtitle: post.data.subtitle,
+          author: post.data.author,
+        },
+      };
+
+      return newPost;
+    });
+
+    setNextPage(nextPageResults.next_page);
+
+    setPosts([...posts, ...newPosts]);
   };
 
   return (
@@ -57,7 +85,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
 
       <main className={`${styles.homeContainer} ${commonStyles.container}`}>
         {posts.map(post => (
-          <section className={styles.homeContent}>
+          <section key={post.uid} className={styles.homeContent}>
             <Link href={`/post/${post.uid}`}>
               <a>{post.data.title}</a>
             </Link>
@@ -72,10 +100,10 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
           </section>
         ))}
 
-        {postsPagination.next_page && (
+        {nextPage && (
           <button
             className={styles.loadButton}
-            onClick={() => handleClick(postsPagination.next_page)}
+            onClick={handleClick}
             type="button"
           >
             Carregar mais posts

@@ -9,15 +9,18 @@ interface PostContentProps {
 
 export function PostContent({ content }: PostContentProps): JSX.Element {
   return (
-    <article className={styles.postContent}>
-      {content.map(c => (
-        <>
-          <h2 key={c.subtitle}>{c.subtitle}</h2>
-          {c.paragraph.map(p => (
-            <p key={c.subtitle}>{p}</p>
+    <>
+      {content.map((c, contentIndex) => (
+        <article
+          key={`${c.subtitle}-${contentIndex + 1}`}
+          className={styles.postContent}
+        >
+          <h2>{c.subtitle}</h2>
+          {c.paragraph.map((p, paragraphIndex) => (
+            <p key={`${c.subtitle}-${paragraphIndex + 2}`}>{p}</p>
           ))}
-        </>
+        </article>
       ))}
-    </article>
+    </>
   );
 }
