@@ -1,12 +1,12 @@
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useState } from 'react';
 import { FiCalendar, FiUser } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
-import { useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -45,36 +45,13 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
       ),
     };
   });
-  const [posts, setPosts] = useState<Post[]>(formattedPosts);
 
   const handleClick = async (): Promise<void> => {
     const nextPageResults = await fetch(postsPagination.next_page).then(
       response => response.json()
     );
 
-    const newPosts = nextPageResults.results.map(post => {
-      const newPost = {
-        uid: post.uid,
-        first_publication_date: format(
-          new Date(post.first_publication_date),
-          'dd MMM yyyy',
-          {
-            locale: ptBR,
-          }
-        ),
-        data: {
-          title: post.data.title,
-          subtitle: post.data.subtitle,
-          author: post.data.author,
-        },
-      };
-
-      return newPost;
-    });
-
     setNextPage(nextPageResults.next_page);
-
-    setPosts([...posts, ...newPosts]);
   };
 
   return (
@@ -84,7 +61,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
       </Head>
 
       <main className={`${styles.homeContainer} ${commonStyles.container}`}>
-        {posts.map(post => (
+        {formattedPosts.map(post => (
           <section key={post.uid} className={styles.homeContent}>
             <Link href={`/post/${post.uid}`}>
               <a>{post.data.title}</a>
@@ -119,7 +96,7 @@ export const getStaticProps: GetStaticProps = async () => {
 
   const postsResponse = await prismic.query(
     Prismic.Predicates.at('document.type', 'posts'),
-    { pageSize: 5 }
+    { orderings: '[document.first_publication_date desc]', pageSize: 5 }
   );
 
   const { next_page } = postsResponse;

@@ -13,7 +13,7 @@ import { getPrismicClient } from '../../services/prismic';
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 import Commentary from '../../components/Commentary';
-import PreviousNext from '../../components/PreviousNext';
+import PreviousAndNext from '../../components/PreviousAndNext';
 
 interface Post {
   first_publication_date: string | null;
@@ -32,12 +32,21 @@ interface Post {
   };
 }
 
-interface PostProps {
-  post: Post;
+interface DataTransfer {
+  title: string;
+  uid: string;
+  description: string;
 }
 
-export default function Post({ post }: PostProps): JSX.Element {
+interface PostProps {
+  post: Post;
+  next: DataTransfer;
+  previous: DataTransfer;
+}
+
+export default function Post({ post, next, previous }: PostProps): JSX.Element {
   const router = useRouter();
+
   const postContent = post.data.content.map(content => {
     const paragraphs = content.body.map(paragraph => paragraph.text);
 
@@ -103,20 +112,18 @@ export default function Post({ post }: PostProps): JSX.Element {
           <hr className={styles.divider} />
 
           <div className={styles.changeButtons}>
-            <PreviousNext
-              data={{
-                title: 'Teste',
-                uid: 'test',
-                description: 'Post anterior',
-              }}
-            />
-            <PreviousNext
-              data={{
-                title: 'Teste',
-                uid: 'test',
-                description: 'Próximo post',
-              }}
-            />
+            {previous.uid && (
+              <PreviousAndNext
+                style={{ marginRight: 'auto', textAlign: 'left' }}
+                data={previous}
+              />
+            )}
+            {next.uid && (
+              <PreviousAndNext
+                style={{ marginLeft: 'auto', textAlign: 'right' }}
+                data={next}
+              />
+            )}
           </div>
 
           <Commentary />
@@ -148,6 +155,20 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const prismic = getPrismicClient();
 
   const response = await prismic.getByUID('posts', String(slug), {});
+  const previousResponse = await prismic.query(
+    Prismic.Predicates.dateBefore(
+      'document.first_publication_date',
+      response.first_publication_date
+    ),
+    { orderings: '[document.first_publication_date desc]', pageSize: 1 }
+  );
+  const nextResponse = await prismic.query(
+    Prismic.Predicates.dateAfter(
+      'document.first_publication_date',
+      response.first_publication_date
+    ),
+    { orderings: '[document.first_publication_date]', pageSize: 1 }
+  );
 
   const post = {
     data: {
@@ -163,9 +184,24 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     uid: response.uid,
   };
 
+  const previous = {
+    uid: previousResponse.results[0] ? previousResponse.results[0].uid : null,
+    title: previousResponse.results[0]
+      ? previousResponse.results[0].data.title
+      : null,
+    description: 'Post anterior',
+  };
+  const next = {
+    uid: nextResponse.results[0] ? nextResponse.results[0].uid : null,
+    title: nextResponse.results[0] ? nextResponse.results[0].data.title : null,
+    description: 'Próximo post',
+  };
+
   return {
     props: {
       post,
+      previous,
+      next,
     },
     revalidate: 60 * 30, // 1min * 30 = 30min
   };
