@@ -12,9 +12,9 @@ import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
-import Commentary from '../../components/Commentary';
-import PreviousAndNext from '../../components/PreviousAndNext';
-import LeavePreviewMode from '../../components/LeavePreviewMode';
+import { Commentary } from '../../components/Commentary';
+import { PreviousAndNext } from '../../components/PreviousAndNext';
+import { LeavePreviewMode } from '../../components/LeavePreviewMode';
 
 interface Post {
   first_publication_date: string | null;
@@ -121,7 +121,7 @@ export default function Post({
                 {wordsPerMinutes} min
               </span>
             </address>
-            <span>{editedPublicationDate}</span>
+            <span className={styles.edited}>{editedPublicationDate}</span>
           </header>
 
           <PostContent content={postContent} />

@@ -11,7 +11,7 @@ interface PreviousNextProps {
   };
 }
 
-export default function PreviousAndNext({
+export function PreviousAndNext({
   style,
   data,
 }: PreviousNextProps): JSX.Element {

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import styles from './commentary.module.scss';
 
-export default function Commentary(): JSX.Element {
+export function Commentary(): JSX.Element {
   useEffect(() => {
     const script = document.createElement('script');
     const anchor = document.getElementById('inject-comments-for-uterances');

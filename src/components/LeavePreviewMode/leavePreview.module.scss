@@ -1,0 +1,16 @@
+.container {
+  display: flex;
+  width: 700px;
+  height: 3.625rem;
+  background: var(--white-10);
+  padding: 1rem auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+
+  span {
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: var(--blue-900);
+  }
+}

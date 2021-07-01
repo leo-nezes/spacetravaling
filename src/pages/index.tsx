@@ -7,6 +7,7 @@ import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
+import { LeavePreviewMode } from '../components/LeavePreviewMode';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -29,9 +30,13 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination;
+  preview: boolean;
 }
 
-export default function Home({ postsPagination }: HomeProps): JSX.Element {
+export default function Home({
+  postsPagination,
+  preview,
+}: HomeProps): JSX.Element {
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
   const formattedPosts = postsPagination.results.map(post => {
     return {
@@ -86,20 +91,24 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
             Carregar mais posts
           </button>
         )}
+
+        {preview && <LeavePreviewMode style={{ marginTop: '5.5rem' }} />}
       </main>
     </>
   );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps = async ({
+  preview = false,
+  previewData = {},
+}) => {
   const prismic = getPrismicClient();
+  let postsPagination: PostPagination;
 
   const postsResponse = await prismic.query(
     Prismic.Predicates.at('document.type', 'posts'),
     { orderings: '[document.first_publication_date desc]', pageSize: 5 }
   );
-
-  const { next_page } = postsResponse;
 
   const posts = postsResponse.results.map(post => {
     return {
@@ -113,7 +122,22 @@ export const getStaticProps: GetStaticProps = async () => {
     };
   });
 
-  const postsPagination: PostPagination = {
+  if (preview) {
+    postsPagination = {
+      results: posts,
+      next_page: postsResponse.next_page,
+    };
+
+    return {
+      props: {
+        postsPagination,
+      },
+    };
+  }
+
+  const { next_page } = postsResponse;
+
+  postsPagination = {
     results: posts,
     next_page,
   };
