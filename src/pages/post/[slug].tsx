@@ -14,9 +14,11 @@ import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 import Commentary from '../../components/Commentary';
 import PreviousAndNext from '../../components/PreviousAndNext';
+import LeavePreviewMode from '../../components/LeavePreviewMode';
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string;
   data: {
     title: string;
     banner: {
@@ -40,11 +42,17 @@ interface DataTransfer {
 
 interface PostProps {
   post: Post;
+  preview: boolean;
   next: DataTransfer;
   previous: DataTransfer;
 }
 
-export default function Post({ post, next, previous }: PostProps): JSX.Element {
+export default function Post({
+  post,
+  preview,
+  next,
+  previous,
+}: PostProps): JSX.Element {
   const router = useRouter();
 
   const postContent = post.data.content.map(content => {
@@ -56,6 +64,22 @@ export default function Post({ post, next, previous }: PostProps): JSX.Element {
     };
   });
 
+  const formattedPublicationDate = format(
+    new Date(post.first_publication_date),
+    'dd MMM yyyy',
+    {
+      locale: ptBR,
+    }
+  );
+
+  const editedPublicationDate = format(
+    new Date(post.last_publication_date),
+    "'* editado em' dd MMM yyyy, à's' HH:mm",
+    {
+      locale: ptBR,
+    }
+  );
+
   const wordsQuantity = post.data.content.reduce((accumulator, c) => {
     const headingWordsQuantity = c.heading.split(' ').length;
 
@@ -65,14 +89,6 @@ export default function Post({ post, next, previous }: PostProps): JSX.Element {
   }, 0);
 
   const wordsPerMinutes = Math.ceil(wordsQuantity / 200);
-
-  const formattedPublicationDate = format(
-    new Date(post.first_publication_date),
-    'dd MMM yyyy',
-    {
-      locale: ptBR,
-    }
-  );
 
   if (router.isFallback) return <div>Carregando...</div>;
 
@@ -105,6 +121,7 @@ export default function Post({ post, next, previous }: PostProps): JSX.Element {
                 {wordsPerMinutes} min
               </span>
             </address>
+            <span>{editedPublicationDate}</span>
           </header>
 
           <PostContent content={postContent} />
@@ -126,7 +143,11 @@ export default function Post({ post, next, previous }: PostProps): JSX.Element {
             )}
           </div>
 
+          {preview && <h1>Modo Preview</h1>}
+
           <Commentary />
+
+          <LeavePreviewMode />
         </section>
       </main>
     </>
@@ -149,25 +170,21 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+export const getStaticProps: GetStaticProps = async ({
+  params,
+  preview = false,
+  previewData = {},
+}) => {
+  let props = {};
   const { slug } = params;
+  const { ref } = previewData;
 
   const prismic = getPrismicClient();
 
-  const response = await prismic.getByUID('posts', String(slug), {});
-  const previousResponse = await prismic.query(
-    Prismic.Predicates.dateBefore(
-      'document.first_publication_date',
-      response.first_publication_date
-    ),
-    { orderings: '[document.first_publication_date desc]', pageSize: 1 }
-  );
-  const nextResponse = await prismic.query(
-    Prismic.Predicates.dateAfter(
-      'document.first_publication_date',
-      response.first_publication_date
-    ),
-    { orderings: '[document.first_publication_date]', pageSize: 1 }
+  const response = await prismic.getByUID(
+    'posts',
+    String(slug),
+    ref ? { ref } : null
   );
 
   const post = {
@@ -181,8 +198,40 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       content: response.data.content,
     },
     first_publication_date: response.first_publication_date,
+    last_publication_date: response.last_publication_date,
     uid: response.uid,
   };
+
+  if (ref) {
+    props = {
+      post,
+      preview,
+      previous: {
+        uid: null,
+      },
+      next: {
+        uid: null,
+      },
+    };
+
+    return { props };
+  }
+
+  const previousResponse = await prismic.query(
+    Prismic.Predicates.dateBefore(
+      'document.first_publication_date',
+      response.first_publication_date
+    ),
+    { orderings: '[document.first_publication_date desc]', pageSize: 1 }
+  );
+
+  const nextResponse = await prismic.query(
+    Prismic.Predicates.dateAfter(
+      'document.first_publication_date',
+      response.first_publication_date
+    ),
+    { orderings: '[document.first_publication_date]', pageSize: 1 }
+  );
 
   const previous = {
     uid: previousResponse.results[0] ? previousResponse.results[0].uid : null,
@@ -191,6 +240,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       : null,
     description: 'Post anterior',
   };
+
   const next = {
     uid: nextResponse.results[0] ? nextResponse.results[0].uid : null,
     title: nextResponse.results[0] ? nextResponse.results[0].data.title : null,
@@ -200,6 +250,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   return {
     props: {
       post,
+      preview,
       previous,
       next,
     },
